@@ -58,7 +58,7 @@
   .cal__week { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; }
   .cal__week span { text-align: center; font-size: 12px; font-weight: 500; color: var(--muted); }
   .cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-  .cell { position: relative; aspect-ratio: 1; border-radius: 16px; background: var(--cell); border: 1px solid rgba(255,255,255,.6); display: grid; place-items: center; font-size: 15px; font-weight: 500; color: var(--ink); overflow: hidden; transition: transform .15s ease; }
+  .cell { position: relative; aspect-ratio: 3/4; border-radius: 16px; background: var(--cell); border: 1px solid rgba(255,255,255,.6); display: grid; place-items: center; font-size: 15px; font-weight: 500; color: var(--ink); overflow: hidden; transition: transform .15s ease; }
   .cell:active { transform: scale(.94); }
   .cell--empty { background: transparent; border-color: transparent; pointer-events: none; }
   .cell--future { color: rgba(31,27,20,.25); }
