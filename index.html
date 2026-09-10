@@ -65,7 +65,7 @@
   .cell--today { box-shadow: inset 0 0 0 1.5px rgba(31,27,20,.35); }
   .cell--selected { box-shadow: inset 0 0 0 2px var(--ink); }
   .cell--filled { background: var(--glass-strong); }
-  .cell__img { width: 84%; height: 84%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.14)); }
+  .cell__img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0,0,0,.14)); }
   .cell__count { position: absolute; right: 4px; bottom: 4px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--ink); color: #fff; font-size: 10px; font-weight: 600; display: grid; place-items: center; }
 
   /* Add button */
@@ -81,11 +81,11 @@
   .drink__img { width: 72px; height: 72px; object-fit: contain; filter: drop-shadow(0 3px 5px rgba(0,0,0,.16)); }
   .drink__name { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .drink__brand { font-size: 12px; font-weight: 500; color: var(--tan); background: rgba(155,130,80,.12); padding: 2px 8px; border-radius: 999px; }
+  .drink__temp { font-size: 12px; font-weight: 500; color: var(--tan); }
   .drink__sub { margin-top: 4px; font-size: 14px; color: var(--muted); }
   .drink__right { text-align: right; }
   .drink__mg { font-size: 26px; font-weight: 600; color: var(--tan); line-height: 1; letter-spacing: -0.02em; }
   .drink__unit { font-size: 13px; color: var(--muted); margin-top: 2px; }
-  .drink__hearts { margin-top: 6px; font-size: 13px; letter-spacing: 1px; }
   .drink__del { grid-column: 1 / -1; justify-self: end; font-size: 12px; color: var(--muted); padding: 4px 8px; margin-top: -4px; }
   .drink__del:hover { color: var(--heart); }
 
@@ -133,10 +133,6 @@
   .seg { display: flex; background: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.8); border-radius: var(--radius-md); padding: 4px; }
   .seg__opt { flex: 1; height: 38px; border-radius: 10px; font-size: 14px; font-weight: 500; color: var(--muted); }
   .seg__opt--on { background: var(--ink); color: #fff; }
-  .hearts { display: flex; gap: 6px; padding: 6px 4px; font-size: 26px; }
-  .hearts__h { filter: grayscale(1) opacity(.35); transition: transform .1s; }
-  .hearts__h--on { filter: none; }
-  .hearts__h:active { transform: scale(1.2); }
   .save { height: 56px; border-radius: 28px; background: var(--ink); color: #fff; font-size: 17px; font-weight: 600; margin-top: 6px; box-shadow: 0 8px 24px rgba(31,27,20,.2); }
   .save:active { background: #000; }
   .save:disabled { opacity: .5; }
@@ -219,7 +215,7 @@
       </div>
       <div class="row2">
         <div class="field"><span class="field__label">Temperature</span>
-          <div class="seg" id="segTemp"><button type="button" class="seg__opt seg__opt--on" data-v="hot">♨ Hot</button><button type="button" class="seg__opt" data-v="ice">🧊 Iced</button></div></div>
+          <div class="seg" id="segTemp"><button type="button" class="seg__opt seg__opt--on" data-v="hot">Hot</button><button type="button" class="seg__opt" data-v="ice">Iced</button></div></div>
         <div class="field"><span class="field__label">Size</span>
           <div class="seg" id="segSize"><button type="button" class="seg__opt" data-v="S">S</button><button type="button" class="seg__opt seg__opt--on" data-v="M">M</button><button type="button" class="seg__opt" data-v="L">L</button></div></div>
       </div>
@@ -227,8 +223,6 @@
         <div class="field"><label class="field__label" for="fDate">Date</label><input class="field__input" id="fDate" type="date" required></div>
         <div class="field"><label class="field__label" for="fTime">Time</label><input class="field__input" id="fTime" type="time" required></div>
       </div>
-      <div class="field"><span class="field__label">Rating</span>
-        <div class="hearts" id="hearts" role="radiogroup" aria-label="Rating"></div></div>
       <button class="save" id="saveBtn" type="submit">Save</button>
     </form>
   </div>
@@ -280,7 +274,7 @@ const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-$
 let view = { y: today.getFullYear(), m: today.getMonth() };
 let selected = iso(today);
 let drinks = [];
-let draft = { img: null, temp: 'hot', size: 'M', rating: 4 };
+let draft = { img: null, temp: 'hot', size: 'M' };
 let stream = null;
 
 /* ---------- render ---------- */
@@ -331,13 +325,12 @@ function renderDay() {
     el.innerHTML = `
       <img class="drink__img" alt="">
       <div>
-        <div class="drink__name"><span class="drink__brand" ${it.brand ? '' : 'hidden'}></span><span class="drink__label"></span><span>${it.temp === 'ice' ? '🧊' : '♨️'}</span></div>
+        <div class="drink__name"><span class="drink__brand" ${it.brand ? '' : 'hidden'}></span><span class="drink__label"></span><span class="drink__temp">${it.temp === 'ice' ? 'Iced' : 'Hot'}</span></div>
         <div class="drink__sub"></div>
       </div>
       <div class="drink__right">
         <div class="drink__mg">${it.caffeine || 0}</div>
         <div class="drink__unit">mg</div>
-        <div class="drink__hearts">${'❤️'.repeat(it.rating)}</div>
       </div>
       <button class="drink__del" type="button">Delete</button>`;
     el.querySelector('.drink__img').src = it.img;
@@ -440,26 +433,17 @@ function openForm() {
   $('fDate').value = selected;
   $('fTime').value = new Date().toTimeString().slice(0, 5);
   $('fName').value = ''; $('fBrand').value = ''; $('fMg').value = '';
-  draft.temp = 'hot'; draft.size = 'M'; draft.rating = 4;
-  syncSeg('segTemp', draft.temp); syncSeg('segSize', draft.size); renderHearts();
+  draft.temp = 'hot'; draft.size = 'M';
+  syncSeg('segTemp', draft.temp); syncSeg('segSize', draft.size);
   $('fName').focus();
 }
 function syncSeg(id, v) { $(id).querySelectorAll('.seg__opt').forEach(b => b.classList.toggle('seg__opt--on', b.dataset.v === v)); }
 $('segTemp').onclick = e => { const b = e.target.closest('.seg__opt'); if (b) { draft.temp = b.dataset.v; syncSeg('segTemp', draft.temp); } };
 $('segSize').onclick = e => { const b = e.target.closest('.seg__opt'); if (b) { draft.size = b.dataset.v; syncSeg('segSize', draft.size); } };
-function renderHearts() {
-  const h = $('hearts'); h.innerHTML = '';
-  for (let i = 1; i <= 5; i++) {
-    const b = document.createElement('button'); b.type = 'button'; b.textContent = '❤️';
-    b.className = 'hearts__h' + (i <= draft.rating ? ' hearts__h--on' : ''); b.setAttribute('aria-label', `${i} of 5`);
-    b.onclick = () => { draft.rating = i; renderHearts(); };
-    h.appendChild(b);
-  }
-}
 $('stepForm').onsubmit = async e => {
   e.preventDefault();
   const d = { id: crypto.randomUUID(), img: draft.img, name: $('fName').value.trim(), brand: $('fBrand').value.trim(),
-    caffeine: Number($('fMg').value) || 0, temp: draft.temp, size: draft.size, rating: draft.rating,
+    caffeine: Number($('fMg').value) || 0, temp: draft.temp, size: draft.size,
     date: $('fDate').value, time: $('fTime').value };
   await store.put(d); drinks.push(d); selected = d.date;
   view = { y: Number(d.date.slice(0,4)), m: Number(d.date.slice(5,7)) - 1 };
