@@ -235,18 +235,41 @@
 </div>
 
 <script type="module">
-/* ---------- storage (IndexedDB) ---------- */
-const DB = { name: 'drinklog', store: 'drinks' };
-const openDB = () => new Promise((res, rej) => {
-  const r = indexedDB.open(DB.name, 1);
-  r.onupgradeneeded = () => r.result.createObjectStore(DB.store, { keyPath: 'id' }).createIndex('date', 'date');
-  r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
-});
-const tx = async (mode, fn) => { const db = await openDB(); return new Promise((res, rej) => { const t = db.transaction(DB.store, mode); const req = fn(t.objectStore(DB.store)); t.oncomplete = () => res(req?.result); t.onerror = () => rej(t.error); }); };
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+/* ---------- storage (Supabase) ---------- */
+const SUPABASE_URL = 'https://hubawygcjnenucljycfa.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_fvbpbzvJvjRC-5AlyAITWQ_ihZRr8sH';
+const BUCKET = 'drink-images';
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const dataURLtoBlob = async (dataURL) => (await fetch(dataURL)).blob();
+
+const uploadImage = async (id, dataURL) => {
+  if (!dataURL || !dataURL.startsWith('data:')) return dataURL; // already a URL
+  const blob = await dataURLtoBlob(dataURL);
+  const path = `${id}.png`;
+  const { error } = await sb.storage.from(BUCKET).upload(path, blob, { contentType: 'image/png', upsert: true });
+  if (error) throw error;
+  return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+};
+
 const store = {
-  all: () => tx('readonly', s => s.getAll()),
-  put: d => tx('readwrite', s => s.put(d)),
-  del: id => tx('readwrite', s => s.delete(id)),
+  all: async () => {
+    const { data, error } = await sb.from('drinks').select('*').order('date', { ascending: true });
+    if (error) throw error;
+    return data;
+  },
+  put: async d => {
+    d.img = await uploadImage(d.id, d.img);
+    const { error } = await sb.from('drinks').upsert(d);
+    if (error) throw error;
+  },
+  del: async id => {
+    await sb.storage.from(BUCKET).remove([`${id}.png`]);
+    const { error } = await sb.from('drinks').delete().eq('id', id);
+    if (error) throw error;
+  },
 };
 
 /* ---------- state ---------- */
